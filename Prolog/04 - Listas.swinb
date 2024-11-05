@@ -1,0 +1,228 @@
+<div class="notebook">
+
+<div class="nb-cell markdown" name="md1">
+## Listas
+En prolog, las listas son colecciones de terminos (variables, terminos simples (atoms, integer, lists, etc), terminos compuestos (2+2, etc)). Estás estructuras ya incluidas en el lenguaje nos van a permitir representar conjuntos sobre los mismos terminos y desarrollar estructuras de datos complejas como pilas, colas, grafos, arboles, etc.
+
+La lista se escribe entre \[\] y sus elementos son separados por coma. A continuación unos ejemplos de listas:
+
+```prolog
+[1, 2, 3]
+[a, b, c]
+[]
+[a, [b, c], [dalmata, perro(dalmata)]] % Largo: 3
+```
+
+Prolog tiene un símbolo | (pipe) para listas que se utiliza para armarlas o descomponerlas (según el punto de vista).
+
+Este símbolo define la separación entre la cabeza o *head* y la cola o *tail* de una lista. Ejecutemos unas consultas y veamos su comportamiento
+</div>
+
+<div class="nb-cell query" name="q1">
+[Head | Tail] = [1, 2, 3, 4, 5].
+</div>
+
+<div class="nb-cell query" name="q2">
+[Head | Tail] = [1].
+</div>
+
+<div class="nb-cell query" name="q3">
+[Head | Tail] = [].
+</div>
+
+<div class="nb-cell query" name="q4">
+[a, b | Resto] = [a, b, c, d, e].
+</div>
+
+<div class="nb-cell query" data-tabled="true" name="q5">
+[a, b | Resto] = [1, 2, 3, 4, 5].
+</div>
+
+<div class="nb-cell query" name="q6">
+[Head, Head2 | Resto] = [1, 2, 3, 4, 5].
+</div>
+
+<div class="nb-cell query" name="q7">
+[A, B, C, D, E] = [1, 2 + 2, c, \+true, atom(a)]
+</div>
+
+<div class="nb-cell markdown" name="md2">
+La representación de la lista descompuesta se puede ver como una combinación en cadena de cabeza y cola
+</div>
+
+<div class="nb-cell query" data-tabled="true" name="q8">
+[1, 2, 3] == [1 | [2 | [3 | []]]]
+</div>
+
+<div class="nb-cell markdown" name="md3">
+Podemos definir una regla que nos separe la cabeza y la cola para ir comenzando con aplicaciones de listas
+</div>
+
+<div class="nb-cell program" data-background="true" name="p1">
+cabeza_cola([H|T], H, T).
+</div>
+
+<div class="nb-cell query" name="q9">
+cabeza_cola([a, b, c], Cabeza, Cola).
+</div>
+
+<div class="nb-cell markdown" name="md4">
+Ahora combinemos el uso de listas en reglas, con recursividad, para lograr realizar operaciones que antes o nos eran imposibles, o su código se volvía muy complicado y rebuscado.
+
+Empecemos por combinar dos listas en una. Para ello voy a utilizar tres argumentos, dos para las listas parciales y uno para la lista combinada. La recursividad hará que eventualmente la segunda lista parcial se unifique como la lista combinada, y al volver sobre la recursion, se le adicionará a esta lista, cada uno de los elementos de la primer lista parcial
+</div>
+
+<div class="nb-cell program" data-background="true" name="p2">
+% Caso base: Si una lista es vacia, y la otra es una lista,
+% la lista concatenada es la lista parcial
+concatenar([], L, L):-is_list(L).
+
+% Caso recursivo:
+% Para toda lista con al menos un elemento
+% Invoco a la recursividad hasta obtener L en FL, y T vacia
+% Luego antepongo cada elemento del head de la primer lista en orden inverso por la recursividad
+concatenar([H | T], L, [H | FL]) :-
+    concatenar(T, L, FL).
+</div>
+
+<div class="nb-cell query" name="q10">
+concatenar([1, 2], [3, 4], L).
+</div>
+
+<div class="nb-cell query" data-tabled="true" name="q16">
+concatenar([1, 2], [H, H2 | [a]], [1, 2, 3, 4, X]).
+</div>
+
+<div class="nb-cell query" data-tabled="true" name="q11">
+concatenar([], x, L).
+</div>
+
+<div class="nb-cell markdown" name="md5">
+Muchos de los terminos más sencillos para trabajar con listas en prolog ya existen de forma nativa o a través de alguna biblioteca interna. Por ejemplo, nuestro predicado concatenar/3, existe con el nombre union/3.
+
+También tenemos otros dos predicados muy utilizados como length/2 donde unifica en sus argumentos una lista con su largo, y member/2 donde unificara en sus argumentos una lista con sus elementos. Intentemos crearlos nosotros para practicar
+</div>
+
+<div class="nb-cell program" data-background="true" name="p3">
+% largo/2
+largo([_], 1).
+largo([_ | T], Resultado):-
+	largo(T, Parcial),
+    Resultado is Parcial + 1.
+    
+% miembro/2
+miembro(E, [E]).
+miembro(E, [H | T]):-
+    E == H;
+    miembro(E, T),
+    
+</div>
+
+<div class="nb-cell program" data-background="true" name="p4">
+% Solución
+
+solucion_largo([], 0).
+solucion_largo([_|XS], N):-
+    solucion_largo(XS, N1),
+    N is N1 + 1.
+
+solucion_miebro(X,[X|_]).
+solucion_miebro(X,[_|T]):-solucion_miebro(X,T).
+</div>
+
+<div class="nb-cell query" data-chunk="100" data-tabled="true" name="q12">
+miembro(2, [1,20,3,4])
+</div>
+
+<div class="nb-cell markdown" name="md6">
+Hay casos donde la información la vamos a tener dispuesta en hechos, pero queremos trabajarlo como listas. Para ello debemos tomar el conjunto deseado y pasarlo a una lista. Hay un predicado denominado findall/3 que se encarga de esto mismo. Para utilizarlo, se espera una variable que va a funcionar como un extractor, una meta (goal), y una variable con la lista con los valores recolectados
+</div>
+
+<div class="nb-cell program" data-background="true" name="p5">
+curso1(a).
+curso1(b).
+curso1(c).
+
+curso2(d).
+curso2(e).
+curso2(f).
+
+nota(a, 2).
+nota(b, 6).
+nota(c, 2).
+nota(d, 2).
+nota(e, 9).
+nota(f, 7).
+
+aprobada(Nota):-Nota &gt;= 4.
+</div>
+
+<div class="nb-cell query" data-tabled="true" name="q13">
+findall(X, nota(_, X), ListaNotas)
+</div>
+
+<div class="nb-cell query" data-tabled="true" name="q15">
+% Listado de alumnos desaprobados
+% El guión bajo delante nos indica que es una variable que no se desea mostrar
+findall(_Y, (nota(_Y, _X), \+aprobada(_X)), ListaNotas)
+</div>
+
+<div class="nb-cell query" data-tabled="true" name="q14">
+% Listado de notas aprobadas de alumnos del curso2
+findall(_X, (nota(_A, _X), aprobada(_X), curso2(_A)), ListaNotas)
+</div>
+
+<div class="nb-cell markdown" name="md7">
+## 12 - Operaciones de listas
+
+Utilizando los conceptos de lista y recursividad y sin utilizar los predicados existentes para listas en prolog, resolver:
+
+1. Suma de todos los valores de una lista. suma/2 (Lista, total)
+2. Contar cuantos valores repetidos de un elemento hay en una lista. contar/3 (Lista, Elemento, Cantidad)
+3. Buscar todas las posiciones de un elemento en una lista. indice_de/3 (Lista, Elemento, Posicion)
+Pudiendo utilizar predicados existentes, resolver
+
+4. Para un listado de 0 a n hechos nota/1, con notas de 1 a 10, hallar el promedio de las mismas. promedio_nota/1
+</div>
+
+<div class="nb-cell program" name="p6">
+% suma de todos los valores de una lista 
+suma([], 0).
+suma([H | T], Total):-
+    suma(T, Parcial),
+    Total is Parcial + H.
+</div>
+
+<div class="nb-cell query" name="q17">
+suma([2,2,7], Resultado)
+</div>
+
+<div class="nb-cell program" name="p7">
+% Contar cuantos valores repetidos de un elemento hay en una lista. 
+igual_int(A, A, 1).
+igual_int(A, B, 0):-A \== B.
+
+contar([], _, 0).
+contar([H | T], E, Cantidad):-
+    contar(T, E, Parcial),
+   	igual_int(H, E, S),
+    Cantidad is Parcial + S.
+</div>
+
+<div class="nb-cell query" name="q18">
+contar([1,1,1,2], 1, Cantidad)
+</div>
+
+<div class="nb-cell program" name="p8">
+% Buscar todas las posiciones de un elemento en una lista. 
+indice_de([E | _], E, 0).
+indice_de([_ | T], E, Posicion):-
+    indice_de(T, E, Parcial),
+    Posicion is Parcial + 1.
+</div>
+
+<div class="nb-cell query" name="q19">
+indice_de([3,3,3,1,2,3,4,5], 3, Posiciones)
+</div>
+
+</div>

@@ -1,0 +1,529 @@
+<div class="notebook">
+
+<div class="nb-cell markdown" name="md1">
+## Conjuntos
+
+Las consultas de prolog que unifican valores a variables (es decir, que _retorna_ información adicional) pueden ser pensadas en forma de conjuntos. Un predicado junto a sus atributos variables pueden ser pensados como un conjunto de información. De esa manera podemos pensar ciertas operaciónes como operaciones de conjuntos (unión \/, intersección /\ y resta --)
+
+Tomemos como ejemplo dos conjuntos de hechos, `parcial1` y `parcial2`
+</div>
+
+<div class="nb-cell program" data-background="true" name="p1">
+parcial1(a, 1).
+parcial1(b, 2).
+parcial1(c, 3).
+parcial1(d, 4).
+parcial1(e, 5).
+parcial1(f, 6).
+
+parcial2(a, 4).
+parcial2(b, 5).
+parcial2(c, 6).
+parcial2(g, 7).
+parcial2(h, 8).
+parcial2(i, 9).
+</div>
+
+<div class="nb-cell program" data-background="true" name="p6">
+% Resta
+alumnos_solo_parcial1(X):-
+    parcial1(X, _),       % Conjunto de alumnos que rindieron parcial1
+    \+parcial2(X, _).     % MENOS conjunto de alumnos que rindieron parcial2
+
+alumnos_solo_parcial2(X):-
+    parcial2(X, _),
+    \+parcial1(X, _).
+
+% Intersección
+alumnos_ambos_parciales(X):-
+    parcial1(X, _), parcial2(X, _).
+
+% Union
+alumnos_unidos(X):-
+    parcial1(X, _);
+    parcial2(X, _).
+
+% Union unica
+alumnos(X):-
+    parcial1(X, _), parcial2(X, _)    % interseccion A /\ B
+    ;                                 % union
+    parcial1(X, _), \+parcial2(X, _)  % resta A-B
+    ;                                 % union
+    parcial2(X, _), \+parcial1(X, _). % resta B-A
+</div>
+
+<div class="nb-cell query" data-chunk="20" data-tabled="true" name="q1">
+alumnos(Alumno)
+</div>
+
+<div class="nb-cell markdown" name="md3">
+Lo interesante es que ahora tenemos un nuevo conocimiento que es alumno, que podría ser alumnos de una comisión, entonces puedo querer volver a realizar una union para obtener todos los alumnos de una cátedra y así sucesivamente.
+
+Nota: Para poder trabajar con estas 3 operaciones de conjuntos, se debe trabajar siempre con el mismo conjunto de variables en todos los casos. 
+
+Por último vamos a ver una operación de conjuntos sobre si mismo, donde se involucran 2 variables distintas, que es el producto cartesiano o producto cruz (X)
+</div>
+
+<div class="nb-cell program" name="p2">
+producto_cartesiano_alumnos(Alumno1, Alumno2):-
+    alumnos(Alumno1),
+    alumnos(Alumno2).
+
+% Equipo de alumnos posible.
+% Para 9 alumnos, son 72. 9 * 9 resultados posibles - 9 donde Alumno1 y Alumno2 son iguales
+equipos_posibles(Alumno1, Alumno2):-
+    producto_cartesiano_alumnos(Alumno1, Alumno2),
+    Alumno1 \== Alumno2.
+</div>
+
+<div class="nb-cell query" data-chunk="10" data-tabled="true" name="q2">
+equipos_posibles(Alumno1, Alumno2).
+</div>
+
+<div class="nb-cell markdown" name="md2">
+## Máximos y mínimos
+
+Prolog permite el calculo de máximos y mínimos a través de operaciones intermedias de conjuntos. Vamos a utilizar las operaciones de conjuntos vistas hasta el momento para poder obtener el mayor o menor de un conjunto.
+
+Tomemos como ejemplo un conjunto de hechos de notas y veamos como obtener la nota más alta. Podemos intentar luego, ver a quien o quienes les pertenece la misma.
+</div>
+
+<div class="nb-cell program" name="p3">
+nota(a, 1).
+nota(b, 3).
+nota(c, 2).
+nota(d, 4).
+nota(e, 8).
+nota(f, 6).
+
+producto_cartesiano(X, Y):-nota(_, X), nota(_, Y).
+
+seleccion(X, Y):-producto_cartesiano(X, Y), X &lt; Y. 
+
+% Para este paso
+% - Mi X va a tener todos los valores posibles menos el máximo
+% - Mi Y todos menos el mínimo
+
+% Decido con que parte me quedo. Esta parte va a ser lo que se reste del conjunto total
+proyeccion(X):-seleccion(X, _).
+
+% En caso de haber más de un máximo, obtendremos un resultado por cada uno
+max_nota(X):-nota(_, X), \+ proyeccion(X).
+
+max_nota(X, Alumno):-nota(Alumno, X), \+ proyeccion(X).
+</div>
+
+<div class="nb-cell query" data-chunk="10" data-tabled="true" name="q3">
+max_nota(X, Alumno).
+</div>
+
+<div class="nb-cell markdown" name="md4">
+Ahora intentemos realizar un ejercicio con todo lo que aprendimos. Vamos a disponer de un conjunto de notas con los alumnos, como en el caso anterior, pero un alumno puede tener más de una nota.
+
+Quiero poder utilizar un predicado llamado `mayor_nota/2` que me de la nota más alta pero por cada alumno
+</div>
+
+<div class="nb-cell program" name="p4">
+nota(a, 1).
+nota(a, 5).
+nota(a, 8).
+nota(a, 9).
+
+nota(b, 3).
+nota(b, 3).
+nota(b, 3).
+nota(b, 3).
+
+nota(c, 1).
+nota(c, 4).
+nota(c, 9).
+
+nota(d, 4).
+
+% Programa
+</div>
+
+<div class="nb-cell query" data-chunk="10" data-tabled="true" name="q4">
+% Mayor nota X para cada alumno A
+menores_notas(A, N1):-
+    nota(A, N1), nota(A, N2),
+    N1 &lt; N2.
+
+mayor_nota(A, X):-
+	nota(A, X), \+menores_notas(A, X).
+</div>
+
+<div class="nb-cell program" name="p5">
+% Solución
+
+% (pegar arriba, por contexto de nota/2)
+
+solucion_todos_menos_alta(A, X):-nota(A, X), nota(A, Y), X &lt; Y.
+
+solucion_mayor_nota(A, X):- nota(A, X), \+solucion_todos_menos_alta(A, X).
+</div>
+
+<div class="nb-cell markdown" name="md5">
+## 04 - Notas de examen
+
+Se dispone de un listado con los resultados de los parciales de los alumnos del curso de Paradigmas de Programación, organizado de la siguiente manera:
+
+### Veersión 1
+</div>
+
+<div class="nb-cell program" name="p7">
+parcial1(ana,7).
+parcial1(juan,4).
+parcial1(julio, 2).
+parcial1(maria, 10).
+
+parcial2(ana,9).
+parcial2(juan,8).
+parcial2(julio, 4).
+parcial2(maria, 2).
+</div>
+
+<div class="nb-cell markdown" name="md6">
+Se desea obtener:
+
+1. El listado de los alumnos que promocionan la materia
+2. El mismo listado pero esta vez incluyendo la nota final (promedio de los dos parciales) para cada uno
+3. El listado de los alumnos que recursan la materia.
+4. El listado de los alumnos que obtendrán la cursada.
+5. (maximos) A fin de entregar la medalla al mérito, encontrar de aquellos que promocionan (1b), el o los alumnos con mayor nota final (nombre y nota)
+6. (maximos) Ahora se desea obtener cuales fueron las dos notas más altas, considerando simplemente a la nota como el promedio de la nota de parcial1 y parcial2. Solo interesan los números. Un tip es pensar la resolución en dos etapas, la más alta, y después la más alta de lo restante
+
+</div>
+
+<div class="nb-cell program" name="p8">
+parcial1(ana,7).
+parcial1(juan,4).
+parcial1(julio, 2).
+parcial1(maria, 10).
+
+parcial2(ana,9).
+parcial2(juan,8).
+parcial2(julio, 4).
+parcial2(maria, 2).
+
+promocion(Alumno):-
+    parcial1(Alumno, N1), parcial2(Alumno, N2),
+    N1 &gt;= 7, N2 &gt;= 7.
+
+promocion(Alumno, Promedio):-
+    parcial1(Alumno, N1), parcial2(Alumno, N2),
+    N1 &gt;= 7, N2 &gt;= 7,
+    Promedio is (N1 + N2) / 2.
+
+recursa(Alumno):-
+    parcial1(Alumno, N1), parcial2(Alumno, N2),
+    (N1 &lt; 4; N2 &lt; 4).
+
+curso(Alumno):-
+	parcial1(Alumno, N1), parcial2(Alumno, N2),
+    (N1 &gt;= 4, N1 &lt; 7);
+    (N2 &gt;= 4, N2 &lt; 7).
+
+% (maximos) A fin de entregar la medalla al mérito, 
+% encontrar de aquellos que promocionan (1b),
+% el o los alumnos con mayor nota final (nombre y nota)
+promedio(A, P):-
+    parcial1(A, N1), parcial2(A, N2),
+    P is (N1 + N2) / 2.
+
+producto_cartesiano(A, B):-
+    promedio(_, A), promedio(_, B).
+
+todos_menos_alto(A):-
+	producto_cartesiano(A, B),
+	A &lt; B.
+
+alumno_con_promedio_mas_alto(A, P):-
+    promedio(A, P), \+todos_menos_alto(P).
+
+promedio_mas_alto(P):-
+	alumno_con_promedio_mas_alto(_, P).
+
+promedios_sin_el_mas_alto(P):-
+    promedio(_, P), \+promedio_mas_alto(P).
+
+producto_con_seleccion(N1):- 
+    promedios_sin_el_mas_alto(N1), promedios_sin_el_mas_alto(N2),
+    N1 &lt; N2.
+
+segundo_promedio_mas_alto(P):-
+    promedios_sin_el_mas_alto(P), \+producto_con_seleccion(P).
+
+dos_promedios_mas_altos(P1, P2):-
+    promedio_mas_alto(P1),
+    segundo_promedio_mas_alto(P2).
+</div>
+
+<div class="nb-cell query" name="q5">
+dos_promedios_mas_altos(P1, P2)
+</div>
+
+<div class="nb-cell markdown" name="md7">
+### Versión 2
+El listado se compone de al menos una nota para cada alumno. En caso de que algún alumno adeude uno de los parciales (es decir no tenga un hecho relacionado a su parcial), su condición es ausente. No se toman en cuenta quienes no dieron ninguno de los parciales.
+</div>
+
+<div class="nb-cell markdown" name="md8">
+## 05 - Agencia matrimonial
+
+Una agencia matrimonial de los años '80 tiene un fichero de candidatos al matrimonio organizado según las declaraciones siguientes:
+</div>
+
+<div class="nb-cell program" name="p9">
+hombre(N,A,C,E).
+mujer(N,A,C,E).
+</div>
+
+<div class="nb-cell markdown" name="md9">
+Donde N es el nombre de un hombre o una mujer, A su altura (alta, media, baja), C el color de su cabello (rubio, castaño, pelirrojo, negro) y E su edad (joven,adulta,vieja).
+</div>
+
+<div class="nb-cell program" name="p10">
+busca(N,A,C,E).
+</div>
+
+<div class="nb-cell markdown" name="md10">
+Que expresa que la persona N busca una pareja de altura A, con cabello color C y edad E.
+
+Se considera que dos personas x e y de sexos diferentes son adecuadas si x conviene a y e y conviene a x. Se dice que x conviene a y si x conviene físicamente a y (la altura, edad y color de cabello de y son los que busca x) y si, además, los gustos de x e y en música, literatura y deporte coinciden.
+</div>
+
+<div class="nb-cell program" name="p11">
+altura(alta).
+altura(media).
+altura(baja).
+
+cabello(rubio).
+cabello(castaño).
+cabello(pelirrojo).
+cabello(negro).
+
+edad(joven).
+edad(adulta).
+edad(vieja).
+
+hombre(carlos,media,rubio,joven).
+mujer(sandra,media,castaño,vieja).
+
+busca(carlos,media,castaño,vieja).
+busca(sandra,media,rubio,joven).
+
+% si n1(hombre) conviene a n2(mujer)
+hombre_conviene(N1, N2):-
+    busca(N2, A2, C2, E2),
+    hombre(N1, A1, C1, E1),
+    A2 = A1, C2 = C1, E2 = E1.
+
+% si n1(mujer) conviene a n2(hombre)
+mujer_conviene(N1, N2):-
+    busca(N2, A2, C2, E2),
+    mujer(N1, A1, C1, E1),
+    A2 = A1, C2 = C1, E2 = E1.
+
+conviene(H, M):-
+    hombre_conviene(H, M), 
+    mujer_conviene(M, H).
+</div>
+
+<div class="nb-cell query" name="q6">
+conviene(H, M)
+</div>
+
+<div class="nb-cell markdown" name="md11">
+## 07 - Conjuntos de actividades
+
+Dado el siguiente listado de actividades extracurriculares que realiza cada estudiante
+</div>
+
+<div class="nb-cell program" name="p12">
+natacion(a).
+natacion(b).
+natacion(c).
+natacion(d).
+
+futbol(a).
+futbol(b).
+futbol(e).
+futbol(f).
+
+teatro(a).
+teatro(c).
+teatro(e).
+teatro(g).
+</div>
+
+<div class="nb-cell markdown" name="md12">
+Se desea saber
+
+1. Qué estudiantes participan de todas las actividades
+2. Qué estudiantes realizan futbol y no teatro
+3. Qué estudiantes realizan al menos alguna actividad. Evitar duplicados
+4. Qué estudiantes participan de al menos dos actividades
+5. Teniendo un listado de estudiantes total estudiantes/1 comprendido entre [a, j], qué estudiantes no realizan ninguna actividad
+</div>
+
+<div class="nb-cell program" name="p13">
+natacion(a).
+natacion(b).
+natacion(c).
+natacion(d).
+
+futbol(a).
+futbol(b).
+futbol(e).
+futbol(f).
+
+teatro(a).
+teatro(c).
+teatro(e).
+teatro(g).
+
+% Qué estudiantes participan de todas las actividades
+participan_en_todas_las_actividades(A):-
+    natacion(A), futbol(A), teatro(A).
+
+% Qué estudiantes realizan futbol y no teatro
+participan_en_futbol_y_no_teatro(A):-
+    futbol(A),\+teatro(A).
+
+% Qué estudiantes realizan al menos alguna actividad. Evitar duplicados
+realizan_al_menos_una_actividad(A):-
+     natacion(A).
+
+realizan_al_menos_una_actividad(A):-
+     futbol(A),\+natacion(A).
+
+realizan_al_menos_una_actividad(A):-
+     teatro(A),\+futbol(A),\+natacion(A).
+		
+% Qué estudiantes participan de al menos dos actividades
+participan_de_al_menos_dos_actividades(A):-
+    natacion(A), futbol(A).
+
+participan_de_al_menos_dos_actividades(A):-
+    futbol(A), teatro(A), \+natacion(A).
+
+participan_de_al_menos_dos_actividades(A):-
+    teatro(A), natacion(A), \+futbol(A).
+
+estudiantes(a).
+estudiantes(b).
+estudiantes(c).
+estudiantes(d).
+estudiantes(e).
+estudiantes(f).
+estudiantes(g).
+estudiantes(h).
+estudiantes(i).
+estudiantes(j).
+
+no_realizan_actividades(E):-
+    estudiantes(E), \+realizan_al_menos_una_actividad(E).
+</div>
+
+<div class="nb-cell query" name="q7">
+no_realizan_actividades(A)
+
+</div>
+
+<div class="nb-cell markdown" name="md13">
+## 08 - Reuniones empresariales
+
+Dada una base de conocimientos de disponibilidad de horarios (bloques de 1 hora) para reuniones
+</div>
+
+<div class="nb-cell program" name="p14">
+disponibilidad_equipo(marketing, 9).
+disponibilidad_equipo(marketing, 10).
+disponibilidad_equipo(desarrollo, 10).
+disponibilidad_equipo(desarrollo, 11).
+disponibilidad_equipo(ventas, 9).
+disponibilidad_equipo(ventas, 11).
+
+disponibilidad_cliente(google, 9).
+disponibilidad_cliente(google, 10).
+disponibilidad_cliente(google, 11).
+disponibilidad_cliente(apple, 10).
+disponibilidad_cliente(apple, 11).
+disponibilidad_cliente(microsoft, 9).
+disponibilidad_cliente(microsoft, 11).
+</div>
+
+<div class="nb-cell markdown" name="md14">
+1. Se desea saber la disponibilidad para formar una reunión entre nuestros equipos y los clientes. Se debe crear la regla disponibilidad_reunion/3 que determine las reuniones posibles de cada uno de nuestros equipos con cada uno de nuestros clientes en cada horario posible. Para el caso planteado, la salida la siguiente
+
+|Equipo			|Cliente	|Hora	|
+|---------------|:----------:|:------:|
+|marketing		|google		|9		|
+|marketing		|microsoft	|9		|
+|marketing		|google		|10		|
+|marketing		|apple		|10		|
+|desarrollo	 	|google		|10		|
+|desarrollo		|apple		|10		|
+...	...	...
+
+2. Se agrega la posibilidad de reservar un horario de reunión para un equipo y un cliente en un horario en especifico, con el hecho reunion_pactada/3. Se pide crear una nueva regla disponibilidad_reunion_final/3 donde se tenga en cuenta las reuniones ya pactadas y se excluyan de las reuniones disponibles, pero ojo, si por ejemplo una de las reuniones pactadas es de ventas con google a las 11, el equipo de ventas no estará disponible a las 11, pero tampoco lo estará el equipo de google (ya que se considera solo 1 disponibilidad por equipo y cliente por horario)
+Ejemplo: Para las siguientes reuniones pactadas
+</div>
+
+<div class="nb-cell program" name="p15">
+reunion_pactada(ventas, google, 11).
+reunion_pactada(marketing, apple, 10).
+</div>
+
+<div class="nb-cell markdown" name="md15">
+La salida esperada será:
+
+|Equipo		|Cliente	|Hora	|
+|-----------|-----------|-------|
+|marketing	|google		|9		|
+|marketing	|microsoft	|9		|
+|desarrollo	|google		|10		|
+|desarrollo	|apple		|11		|
+|desarrollo	|google		|11		|
+|ventas		|google		|9		|
+|ventas		|microsoft	|9		|
+</div>
+
+<div class="nb-cell program" name="p16">
+disponibilidad_equipo(marketing, 9).
+disponibilidad_equipo(marketing, 10).
+disponibilidad_equipo(desarrollo, 10).
+disponibilidad_equipo(desarrollo, 11).
+disponibilidad_equipo(ventas, 9).
+disponibilidad_equipo(ventas, 11).
+
+disponibilidad_cliente(google, 9).
+disponibilidad_cliente(google, 10).
+disponibilidad_cliente(google, 11).
+disponibilidad_cliente(apple, 10).
+disponibilidad_cliente(apple, 11).
+disponibilidad_cliente(microsoft, 9).
+disponibilidad_cliente(microsoft, 11).
+
+reunion_pactada(ventas, google, 11).
+reunion_pactada(marketing, apple, 10).
+
+% disponibilidad_reunion/3
+disponibilidad_reunion(Equipo, Cliente, Horario):-
+    disponibilidad_equipo(Equipo, Horario),
+    disponibilidad_cliente(Cliente, Horario).
+
+% disponibilidad_reunion_final/3
+disponibilidad_reunion_final(Equipo, Cliente, Horario) :-
+    disponibilidad_reunion(Equipo, Cliente, Horario),
+    \+ (reunion_pactada(Equipo, _, Horario) ; reunion_pactada(_, Cliente, Horario)).
+
+
+</div>
+
+<div class="nb-cell query" name="q8">
+disponibilidad_reunion_final(E, C, H)
+</div>
+
+</div>

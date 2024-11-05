@@ -1,0 +1,171 @@
+<div class="notebook">
+
+<div class="nb-cell markdown" name="md1">
+## Recursividad
+La recursividad en Prolog permite definir un predicado en términos de sí mismo. Esto implica definir casos base, que son condiciones de terminación, junto con casos recursivos que simplifican gradualmente el problema hasta que alcanza el caso base. Este enfoque permite soluciones concisas y elegantes a problemas que involucran estructuras repetitivas o anidadas.
+
+### Ejemplo
+Consideremos un problema básico de recursividad como suele ser el factorial. El factorial de un número entero no negativo N, denotado como N!, es el producto de todos los enteros positivos menores o iguales a N. Es decir, para 7!, la operación debería ser 7 x 6 x 5 x 4 x 3 x 2 x 1.
+</div>
+
+<div class="nb-cell program" data-background="true" name="p1">
+factorial(0, 1).               % Regla: caso base
+factorial(N, Resultado):-      % Regla: caso recursivo
+    N &gt; 0,                     % para todo N mayor a 0
+    N1 is N - 1,               % se define N1 como N - 1
+    factorial(N1, Parcial),    % se invoca la recursividad, preguntando por el valor un paso detrás
+    Resultado is Parcial * N.  % se obtiene el resultado
+</div>
+
+<div class="nb-cell query" data-chunk="20" data-run="onload" data-tabled="true" name="q1">
+between(-2, 10, X),
+factorial(X, Resultado).
+</div>
+
+<div class="nb-cell markdown" name="md2">
+La estructura de la recursividad es siempre de la misma manera. Depende el caso quizás es necesario definir más de una regla base o regla recursiva, o quizás se deba invocar a la recursividad más de una vez, o la operación no es tan sencilla como en este caso, pero la base se respeta
+
+    * Regla base
+    * Regla recursiva
+  	    * Alcance de la regla
+        * Invocación recursividad
+        * Operación con resultado parcial
+
+Observen que la consulta solo dio verdadero para los casos donde X &gt;= 0. Eso es porque para casos negativos de N, no está definida la regla
+
+Observen también que estamos utilizando el operador `is/2`. Este operador no cumple con las reglas del patrón lógico como el resto de los operadores, por lo tanto, la regla necesita tener si o si definidas para el momento de la operación `is/2`, todo lo que este a su derecha, que es lo que va a ser evaluado. Un mejor operador sería el `#=/2` pero no entra de nuestro alcance de la materia por estar incluido en una biblioteca (clpfd)
+</div>
+
+<div class="nb-cell query" data-tabled="true" name="q2">
+% Fallará para la regla recursiva
+factorial(X, Resultado).
+</div>
+
+<div class="nb-cell query" data-tabled="true" name="q3">
+% Fallará
+factorial(X, 3628800).
+</div>
+
+<div class="nb-cell query" data-tabled="true" name="q4">
+% Muy lento ya que intentará evaluar en cada paso, salvo que me detenga en el primero
+between(0, 100000, X),
+factorial(X, 3628800).
+</div>
+
+<div class="nb-cell markdown" name="md3">
+## 11 - Recursividad
+
+1. Codifique en prolog las reglas necesarias para obtener el término N en la serie de Gauss
+2. Codifique en prolog las reglas necesarias para obtener el término N en la serie de Fibonacci (sin, y con mejora)
+3. Codifique en prolog las reglas necesarias para obtener el factorial de un número natural N.
+4. Codifique en prolog las reglas necesarias para obtener el producto de dos numeros X e Y, aplicando sumas sucesivas.
+5. Codifique en prolog las reglas necesarias para obtener la potencia N de un numero X aplicando multiplicaciones sucesivas.
+6. Codifique en prolog las reglas necesarias para obtener la el cociente entre dos números a partir de restas sucesivas.
+7. Idem 6, pero que permita obtener el cociente y el resto. Definir la relación mcd(X,Y,Z) que se verifique si Z es el máximo común divisor entre X e Y. Por ejemplo:
+
+```prolog
+mcd(10,15,X).
+&gt; X = 5
+```
+
+8. Define un predicado mcm(X,Y,M) que signifique "M es el mínimo común múltiplo de X e Y"
+
+</div>
+
+<div class="nb-cell program" name="p2">
+% termino N de la serie gauss
+gauss(1, 1).
+gauss(2, 3).
+gauss(N, Resultado):-
+    N &gt; 0,
+    N1 is N - 1,
+    gauss(N1, Parcial),
+    Resultado is Parcial + N.
+</div>
+
+<div class="nb-cell query" name="q5">
+gauss(5, Resultado)
+</div>
+
+<div class="nb-cell program" name="p3">
+% término N en la serie de Fibonacci (sin, y con mejora)
+fibonacci_aux(0, A, _, A).
+fibonacci_aux(N, Previo1, Previo2, Resultado):-
+    N &gt; 0,
+    N1 is N - 1, 
+    Siguiente is Previo1 + Previo2,
+    fibonacci_aux(N1, Previo2, Siguiente, Resultado).
+
+fibonacci_iterativo(N, Resultado):-
+    fibonacci_aux(N, 0, 1, Resultado).
+
+fibonacci(0, 0).
+fibonacci(1, 1).
+fibonacci(N, Resultado):-
+    N &gt; 0,
+    N1 is N - 1,
+    N2 is N - 2,
+    fibonacci(N1, Parcial1),
+    fibonacci(N2, Parcial2),
+    Resultado is Parcial1 + Parcial2.
+</div>
+
+<div class="nb-cell query" name="q6">
+fibonacci_iterativo(6, Resultado)
+</div>
+
+<div class="nb-cell program" name="p4">
+% producto de dos numeros X e Y, aplicando sumas sucesivas.
+producto(0, _, 0).
+producto(_, 0, 0).
+producto(X, Y, Resultado):-
+	X &gt; 0,
+    Y &gt; 0,
+    Y1 is Y - 1,
+    producto(X, Y1, Parcial),
+    Resultado is Parcial + X. 
+</div>
+
+<div class="nb-cell query" name="q7">
+producto(2, 2, Resultado)
+</div>
+
+<div class="nb-cell program" name="p5">
+% potencia N de un numero X aplicando multiplicaciones sucesivas.
+potencia(_, 0, 1).
+potencia(B, E, Resultado):-
+    B &gt;= 0,
+    E &gt; 0,
+    E1 is E - 1,
+    potencia(B, E1, Parcial),
+    Resultado is Parcial * B.
+</div>
+
+<div class="nb-cell query" name="q8">
+potencia(4, 2, Resultado)
+</div>
+
+<div class="nb-cell program" name="p6">
+% cociente entre dos números a partir de restas sucesivas.
+cociente(N, 1, N).
+cociente(N, N, 1).
+cociente(N, D, Resultado):-
+    N &gt; D,
+    D &gt; 1,
+    N1 is N - D,
+    cociente(N1, D, Parcial),
+    Resultado is Parcial + 1.
+</div>
+
+<div class="nb-cell query" name="q9">
+cociente(4, 2, Resultado)
+</div>
+
+<div class="nb-cell program" name="p7">
+% Idem 6, pero que permita obtener el cociente y el resto
+cociente_y_resto(N, 1, 0, N).
+cociente_y_resto(N, N, 0, 1).
+cociente_y_resto(N, D, R, Resultado).
+</div>
+
+</div>
