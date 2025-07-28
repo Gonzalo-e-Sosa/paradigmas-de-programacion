@@ -1,0 +1,24 @@
+{
+  "name": "Prolog Dev Container",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "workspaceFolder": "/workspace",
+  "remoteUser": "vscode",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "prolog.languageServerPath": "/usr/local/bin/pl",
+        "prolog.languageServerArgs": ["--no-swi"],
+        "terminal.integrated.defaultProfile.windows": "Ubuntu (WSL)"
+      },
+      "extensions": [
+        "arthurwang.vsc-prolog",
+        "ms-azuretools.vscode-docker"
+      ]
+    }
+  },
+  "mounts": [
+    "source=${localWorkspaceFolder},target=/workspace,type=bind"
+  ]
+}
