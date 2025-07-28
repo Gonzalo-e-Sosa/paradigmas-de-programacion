@@ -1,0 +1,26 @@
+{
+  "name": "Haskell Dev Container",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "workspaceFolder": "/workspace",
+  "remoteUser": "vscode",
+  "mounts": [
+    "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached"
+  ],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "justusadam.language-haskell",
+        "ms-azuretools.vscode-docker"
+      ],
+      "settings": {
+        "haskell.formattingProvider": "fourmolu",
+        "haskell.enableHoogle": true,
+        "haskell.enableHls": true,
+        "haskell.hlsExecutablePath": "/usr/bin/haskell-language-server-wrapper",
+        "terminal.integrated.defaultProfile.windows": "Ubuntu (WSL)"
+      }
+    }
+  }
+}
