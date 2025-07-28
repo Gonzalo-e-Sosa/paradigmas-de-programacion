@@ -1,0 +1,22 @@
+FROM openjdk:22-slim
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Crear directorio de trabajo
+WORKDIR /workspace
+
+# Instalar herramientas básicas
+RUN apt-get update && \
+    apt-get install -y git curl nano tree && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Crear usuario no root para VS Code
+ARG USERNAME=vscode
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
+
+RUN groupadd --gid $USER_GID $USERNAME && \
+    useradd --uid $USER_UID --gid $USER_GID -m $USERNAME && \
+    chown -R $USERNAME:$USERNAME /workspace
+
+USER $USERNAME

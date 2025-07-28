@@ -1,0 +1,23 @@
+{
+  "name": "Java 22 Dev Container",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "workspaceFolder": "/workspace",
+  "mounts": [
+    "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached"
+  ],
+  "remoteUser": "vscode",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "vscjava.vscode-java-pack",
+        "ms-azuretools.vscode-docker"
+      ],
+     "settings": {
+       "java.jdt.ls.java.home": "/usr/local/openjdk-22",
+       "terminal.integrated.defaultProfile.windows": "Ubuntu (WSL)"
+     } 
+    }
+  }
+}
