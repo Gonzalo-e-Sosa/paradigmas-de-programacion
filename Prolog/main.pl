@@ -88,4 +88,88 @@ obtener_empleados_departamento(Departamento, Empleados):-
 
 obtener_empleados_salario_mayor(Salario, Empleados):-
     findall(Empleado, (empleado(Empleado, _, S, _), S >= Salario), Empleados).
+
+
+% Ejercicio tipo parcial
+
+% Base de Conocimientos: Temperaturas Mínimas y Máximas por Ciudad y Día
+
+% --- Hechos para temperaturas mínimas ---
+% Sintaxis: temperatura_minima(Ciudad, DiaDeLaSemana, Temperatura).
+
+% Londres
+temperatura_minima("Londres", "Lunes", 10).
+temperatura_minima("Londres", "Martes", 14).
+temperatura_minima("Londres", "Miercoles", 12).
+temperatura_minima("Londres", "Jueves", 11).
+temperatura_minima("Londres", "Viernes", 13).
+temperatura_minima("Londres", "Sabado", 15).
+temperatura_minima("Londres", "Domingo", 10).
+
+% Buenos Aires
+temperatura_minima("Buenos_Aires", "Lunes", 18).
+temperatura_minima("Buenos_Aires", "Martes", 20).
+temperatura_minima("Buenos_Aires", "Miercoles", 19).
+temperatura_minima("Buenos_Aires", "Jueves", 17).
+temperatura_minima("Buenos_Aires", "Viernes", 16).
+temperatura_minima("Buenos_Aires", "Sabado", 15).
+temperatura_minima("Buenos_Aires", "Domingo", 18).
+
+% Tokyo
+temperatura_minima("Tokyo", "Lunes", 22).
+temperatura_minima("Tokyo", "Martes", 23).
+temperatura_minima("Tokyo", "Miercoles", 21).
+temperatura_minima("Tokyo", "Jueves", 20).
+temperatura_minima("Tokyo", "Viernes", 24).
+temperatura_minima("Tokyo", "Sabado", 25).
+temperatura_minima("Tokyo", "Domingo", 22).
+
+% --- Hechos para temperaturas máximas ---
+% Sintaxis: temperatura_maxima(Ciudad, DiaDeLaSemana, Temperatura).
+
+% Londres
+temperatura_maxima("Londres", "Lunes", 18).
+temperatura_maxima("Londres", "Martes", 22).
+temperatura_maxima("Londres", "Miercoles", 20).
+temperatura_maxima("Londres", "Jueves", 19).
+temperatura_maxima("Londres", "Viernes", 21).
+temperatura_maxima("Londres", "Sabado", 23).
+temperatura_maxima("Londres", "Domingo", 18).
+
+% Buenos Aires
+temperatura_maxima("Buenos_Aires", "Lunes", 28).
+temperatura_maxima("Buenos_Aires", "Martes", 30).
+temperatura_maxima("Buenos_Aires", "Miercoles", 29).
+temperatura_maxima("Buenos_Aires", "Jueves", 27).
+temperatura_maxima("Buenos_Aires", "Viernes", 26).
+temperatura_maxima("Buenos_Aires", "Sabado", 25).
+temperatura_maxima("Buenos_Aires", "Domingo", 28).
+
+% Tokyo
+temperatura_maxima("Tokyo", "Lunes", 30).
+temperatura_maxima("Tokyo", "Martes", 31).
+temperatura_maxima("Tokyo", "Miercoles", 29).
+temperatura_maxima("Tokyo", "Jueves", 28).
+temperatura_maxima("Tokyo", "Viernes", 32).
+temperatura_maxima("Tokyo", "Sabado", 33).
+temperatura_maxima("Tokyo", "Domingo", 30).
+
+temperatura_promedio(D, R):-
+    temperatura_minima(_, D, T1),
+    temperatura_maxima(_, D, T2),
+    T3 is T1 + T2,
+    R is T3 / 2.
+
+calcular_promedio_minima(Dia, 0):-
+    findall(Temp, temperatura_minima(_, Dia, Temp), ListaTemperaturas),
+    ListaTemperaturas = [].
+
+calcular_promedio_minima(Dia, Promedio):-
+    findall(Temp, temperatura_minima(_, Dia, Temp), ListaTemperaturas),
+    ListaTemperaturas \= [],
+    sum_list(ListaTemperaturas, Suma),
+    length(ListaTemperaturas, Cantidad),
+    Promedio is Suma / Cantidad.
     
+minima_temperatura_promedio(Promedia, Dia):-
+    calcular_promedio_minima(Dia, Promedio).    
